@@ -1,18 +1,17 @@
 ---
 name: pm-skills-complete
-description: PM Skills 全家桶 - 基于 Dean Peters 的 Product-Manager-Skills 仓库。当用户提出产品相关任务时，自动分析需求并选择合适的 PM 方法论 skill 进行处理。覆盖问题定义、优先级排序、用户研究、PRD 开发、路线图规划等常用 PM 工作流。
+description: PM Skills 全家桶 - 基于 Dean Peters 的 Product-Manager-Skills 仓库。当用户提出产品相关任务时，自动分析需求并选择合适的 PM 方法论 skill 进行处理。覆盖问题定义、优先级排序、用户研究、PRD 开发、路线图规划等常用 PM 工作流。适用于 OpenClaw、Claude Code、Cursor 等 AI 助手。
 metadata:
   {
-    "openclaw": {
-      "emoji": "🧭",
-      "requires": { "bins": ["git"] }
-    }
+    "requires": { "bins": ["git"] }
   }
 ---
 
 # PM Skills Complete
 
 这是一个 **PM 技能全家桶**，当用户提出任何产品经理相关的工作任务时，你应该**自动分析需求并选择最合适的 skill** 来处理。
+
+适用于：OpenClaw、Claude Code、Cursor、其他 AI 助手
 
 ## 核心原则
 
@@ -42,36 +41,34 @@ metadata:
 
 ### 查找顺序
 
-1. **当前工作区** - 检查当前对话的 workspace 目录下是否有 `pm-skills-repo`
+1. **当前工作区** - 检查当前 workspace 目录下是否有 `pm-skills-repo`
 2. **上级目录** - 向上查找 `pm-skills-repo`
-3. **OpenClaw workspace** - 查找 `~/.openclaw/workspace/pm-skills-repo`
-4. **同目录相邻** - 查找 skill 文件所在目录的相邻 `pm-skills-repo`
+3. **用户主目录** - 查找 `~/pm-skills-repo`、`~/.openclaw/workspace/pm-skills-repo`、`~/claude-skills/pm-skills-repo` 等常见位置
+4. **AI 助手常见目录** - 查找 AI 助手的工作区相邻目录
+5. **同目录相邻** - 查找 skill 文件所在目录的相邻 `pm-skills-repo`
 
 ### 查找逻辑（伪代码）
 
 ```
 function findPmSkillsRepo():
-    # 1. 当前工作区
-    if exists("./pm-skills-repo"):
-        return "./pm-skills-repo"
+    candidates = [
+        "./pm-skills-repo",
+        "../pm-skills-repo",
+        "../../pm-skills-repo",
+        "../../../pm-skills-repo",
+        "../../../../pm-skills-repo",
+        os.path.expanduser("~/pm-skills-repo"),
+        os.path.expanduser("~/.openclaw/workspace/pm-skills-repo"),
+        os.path.expanduser("~/claude-skills/pm-skills-repo"),
+        os.path.expanduser("~/cursor-skills/pm-skills-repo"),
+        # 当前 skill 目录的相邻位置
+        os.path.dirname(os.path.dirname(__file__)) + "/pm-skills-repo",
+    ]
     
-    # 2. 向上查找
-    current = "."
-    for i in range(5):  # 最多向上5层
-        if exists(current + "/pm-skills-repo"):
-            return current + "/pm-skills-repo"
-        current += "/.."
+    for path in candidates:
+        if exists(path):
+            return path
     
-    # 3. OpenClaw workspace
-    if exists(os.path.expanduser("~/.openclaw/workspace/pm-skills-repo")):
-        return os.path.expanduser("~/.openclaw/workspace/pm-skills-repo")
-    
-    # 4. 技能目录相邻（如果你正在一个 skill 目录里）
-    skillRoot = "/path/to/this/skill/../.."
-    if exists(skillRoot + "/pm-skills-repo"):
-        return skillRoot + "/pm-skills-repo"
-    
-    # 没找到
     return null
 ```
 
@@ -165,6 +162,6 @@ function findPmSkillsRepo():
 ---
 
 **记住：**
-1. 先用"自动发现"逻辑找到 PM skills 仓库
+1. 先用"自动发现"逻辑找到 PM skills 仓库（支持多种 AI 助手的工作区布局）
 2. 再根据用户任务匹配对应的 skill 文件
 3. 读取并执行，最后输出结构化结果
